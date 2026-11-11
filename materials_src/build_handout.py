@@ -65,10 +65,12 @@ TYPE_FILL = {"П": "1F7A45", "Т": "3E5870", "Ч": "C24B35", "З": "2A6FBA", "Х
 
 
 def build():
-    doc = new_doc("Наука 0+   ·   Путь в профессию   ·   тетрадь участника   ·   комплект 2026.1")
+    doc = new_doc(f"Наука 0+   ·   Путь в профессию   ·   тетрадь участника   ·   комплект {VERSION}")
     doc.core_properties.title = "Путь в профессию. Рабочая тетрадь участника"
     doc.core_properties.subject = f"Фестиваль «Наука 0+». Комплект {VERSION}"
     _cover(doc)
+    page_break(doc)
+    _case(doc)
     page_break(doc)
     _formula(doc)
     page_break(doc)
@@ -83,8 +85,6 @@ def build():
     _route(doc)
     page_break(doc)
     _programs(doc)
-    page_break(doc)
-    _case(doc)
     page_break(doc)
     _support(doc)
     _letter(doc)
@@ -130,9 +130,9 @@ def _cover(doc):
     callout(
         doc,
         "Как пользоваться",
-        "На встрече ведущий рассказывает по презентации. Ваши записи нужны в нескольких местах: формула, тест Климова, кейс и письмо. "
+        "Порядок встречи: сначала кейс, потом разведка и формула «хочу — могу — умею — надо», затем тест Климова, сборка кейса и письмо. "
         "На 60 минут отвечайте на вопросы 1–15; на 20 минут — только на вопросы с пометой «экспресс» (1–10). "
-        "Ключ открывайте после слова «считаем» или дома, если идёте сами.",
+        "Ключ открывайте после слова «считаем».",
         "F7F4EE",
         NAVY,
     )
@@ -167,8 +167,9 @@ def _cover(doc):
 
 
 def _formula(doc):
-    h1(doc, "Формула")
-    p(doc, FORMULA_TRAPS, size=11, after=6)
+    h1(doc, "Формула «Хочу — Могу — Умею — Надо»")
+    p(doc, FORMULA_TRAPS, size=11, after=3)
+    p(doc, "Это второй интерактив встречи. Заполните клетки себе. Отметьте галочкой, какую клетку закроет действие вашего центра для школьника.", size=11, after=6)
     table = doc.add_table(rows=2, cols=2)
     set_table_widths(table, [W / 2, W / 2])
     set_table_borders(table, "FFFFFF", "12", "single")
@@ -437,7 +438,7 @@ def _programs(doc):
 def _case(doc):
     h1(doc, f"Кейс «{CASE['title']}»")
     p(doc, CASE["situation"], size=11, after=3)
-    p(doc, CASE["task"] + " На короткой встрече достаточно одного действия от одного человека, без команды.", size=11, after=3)
+    p(doc, CASE["task"] + " На короткой встрече можно работать одному, без команды.", size=11, after=3)
     p(doc, "Критерии", size=12, color=NAVY, bold=True, before=2, after=2)
     for item in CASE["criteria"]:
         bullet(doc, item)
@@ -445,19 +446,16 @@ def _case(doc):
     for role, code, question in CASE["roles"]:
         p(doc, f"{role}  ·  {code}", size=11, color=NAVY, bold=True, before=3, after=0)
         p(doc, question, size=11, after=1)
-    h2(doc, "Наше действие")
+    h2(doc, "Интерактив 1. Разведка")
+    p(doc, CASE["interactive1"]["prompt"], size=11, after=2)
+    for q in CASE["interactive1"]["questions"]:
+        lines(doc, q, 2)
+    h2(doc, "Сборка действия после формулы и теста")
     lines(doc, "Моя роль", 1)
     lines(doc, "Название действия", 1)
     lines(doc, "Для кого оно", 1)
     lines(doc, "Какую клетку формулы закрывает", 1)
     lines(doc, "Первый шаг на этой неделе", 2)
-    callout(
-        doc,
-        "Если группа говорит «мне всё равно»",
-        "Это и есть короткая версия кейса. Однокласснику не читают лекцию. Ему предлагают одно конкретное действие: опрос, спокойный разговор, понятную карту государственных возможностей или живую пробу на 15 минут.",
-        "F7F4EE",
-        NAVY,
-    )
 
 
 def _support(doc):
