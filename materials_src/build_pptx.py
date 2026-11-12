@@ -11,6 +11,7 @@ from content import (
     FORMULA_TRAPS,
     MINUTES,
     SLIDE_SIMPLE,
+    STICKERS,
     TYPE_BORDERS,
     TYPES,
     VERSION,
@@ -20,14 +21,9 @@ from pptx_kit import (
     AMBER,
     CORAL,
     INK,
-    LINE,
     MUTED,
-    PANEL,
     SKY,
-    SOFT,
-    SOFT2,
     TEAL,
-    TEAL_DEEP,
     TYPE_COLORS,
     WHITE,
     W,
@@ -41,6 +37,7 @@ from pptx_kit import (
     notes,
     option_row,
     picture,
+    sticker,
     title,
     write,
 )
@@ -135,31 +132,78 @@ def _formula(prs):
     notes(s, "4 минуты. Заполняют графы в раздатке.")
 
 
-def _directions(prs):
+def _directions_overview(prs):
     s = new_blank(prs)
     accent_bar(s, SKY)
-    picture(s, "social-directions.jpg", 0.45, 1.55, 4.55, 5.0, darken=0.04)
-    add_shape(s, 0.45, 1.55, 4.55, 0.1, SKY)
+    picture(s, "social-directions.jpg", 0.45, 1.55, 4.4, 5.0, darken=0.04)
+    add_shape(s, 0.45, 1.55, 4.4, 0.1, SKY)
     eyebrow(s, "Направления подготовки", SKY)
-    title(s, "Четыре пути, если близки люди", x=5.3, w=7.5)
-    write(s, 5.3, 1.45, 7.5, 0.55, [{"t": SLIDE_SIMPLE["directions"], "size": 15, "color": MUTED}])
+    title(s, "Четыре пути, если близки люди", x=5.15, w=7.7)
+    write(s, 5.15, 1.4, 7.7, 0.55, [{"t": SLIDE_SIMPLE["directions"], "size": 15, "color": MUTED}])
     accents = [TEAL, CORAL, SKY, AMBER]
     for i, d in enumerate(DIRECTIONS_SLIDE):
-        y = 2.15 + i * 1.1
-        add_shape(s, 5.3, y, 7.5, 1.0, WHITE, rounded=True, radius=0.12)
-        add_shape(s, 5.3, y, 0.12, 1.0, accents[i])
+        y = 2.1 + i * 1.1
+        add_shape(s, 5.15, y, 7.7, 1.0, WHITE, rounded=True, radius=0.12)
+        add_shape(s, 5.15, y, 0.12, 1.0, accents[i])
         write(
             s,
-            5.65,
+            5.5,
             y + 0.12,
-            6.95,
+            7.15,
             0.8,
             [
                 {"t": f"{d['title']}  ·  {d['code']}", "size": 16, "color": INK, "bold": True},
                 {"t": d["ask"], "size": 14, "color": accents[i], "italic": True, "before": 3},
             ],
         )
-    notes(s, "2–3 минуты. Вопрос направления важнее длинного описания.")
+    notes(s, "Короткий обзор. Дальше — подробные карточки.")
+
+
+def _direction_detail(prs, items, accents, heading):
+    s = new_blank(prs)
+    accent_bar(s, accents[0])
+    eyebrow(s, "Направления подготовки · подробно", accents[0])
+    title(s, heading, size=28)
+    for i, d in enumerate(items):
+        col = i % 2
+        x = 0.45 + col * 6.4
+        y = 1.45
+        color = accents[i]
+        add_shape(s, x, y, 6.2, 5.2, WHITE, rounded=True, radius=0.12)
+        add_shape(s, x, y, 6.2, 0.12, color)
+        blocks = [
+            {"t": f"{d['title']}  ·  {d['code']}", "size": 18, "color": INK, "bold": True},
+            {"t": d["ask"], "size": 15, "color": color, "italic": True, "before": 6},
+            {"t": d["lead"], "size": 14, "color": INK, "before": 10},
+            {"t": "Чему учат", "size": 13, "color": color, "bold": True, "before": 12},
+            {"t": d["do"], "size": 13, "color": INK, "before": 2},
+            {"t": "Что изучают", "size": 13, "color": color, "bold": True, "before": 10},
+            {"t": d["study"], "size": 13, "color": INK, "before": 2},
+            {"t": "Куда идут", "size": 13, "color": color, "bold": True, "before": 10},
+            {"t": d["work"], "size": 13, "color": MUTED, "before": 2},
+            {"t": "Кому близко", "size": 13, "color": color, "bold": True, "before": 10},
+            {"t": d["fit"] + " " + d["type_hint"], "size": 13, "color": INK, "before": 2},
+        ]
+        if d.get("law"):
+            blocks.append({"t": d["law"], "size": 12, "color": MUTED, "italic": True, "before": 10})
+        write(s, x + 0.3, y + 0.3, 5.6, 4.7, blocks)
+    notes(s, "1–1,5 минуты на пару направлений. Не торопитесь.")
+
+
+def _directions(prs):
+    _directions_overview(prs)
+    _direction_detail(
+        prs,
+        DIRECTIONS_SLIDE[:2],
+        [TEAL, CORAL],
+        "Социология и социальная работа",
+    )
+    _direction_detail(
+        prs,
+        DIRECTIONS_SLIDE[2:],
+        [SKY, AMBER],
+        "Политология и работа с молодёжью",
+    )
 
 
 def _test_intro(prs):
@@ -169,17 +213,19 @@ def _test_intro(prs):
     add_shape(s, 0.45, 1.4, 5.1, 0.1, CORAL)
     eyebrow(s, "Опросник Климова · 15 пар", CORAL)
     title(s, "Дальше — вопросы на слайдах", x=5.85, w=6.9)
-    write(s, 5.85, 1.5, 6.9, 1.3, [{"t": SLIDE_SIMPLE["test"], "size": 17, "color": INK}])
+    write(s, 5.85, 1.5, 6.9, 1.15, [{"t": SLIDE_SIMPLE["test"], "size": 17, "color": INK}])
     write(
         s,
         5.85,
-        3.0,
+        2.85,
         6.9,
-        0.45,
-        [{"t": "Отмечайте ответ в раздатке. Ключ и типы — после всех пар.", "size": 16, "color": MUTED}],
+        0.4,
+        [{"t": "Отмечайте ответ в раздатке. Ключ и типы — после всех пар.", "size": 15, "color": MUTED}],
     )
-    option_row(s, 5.85, 3.7, 6.9, 0.95, "А", "Первый вариант из пары", TEAL)
-    option_row(s, 5.85, 4.85, 6.9, 0.95, "Б", "Второй вариант из пары", CORAL)
+    option_row(s, 5.85, 3.45, 6.9, 0.9, "А", "Первый вариант из пары", TEAL)
+    option_row(s, 5.85, 4.5, 6.9, 0.9, "Б", "Второй вариант из пары", CORAL)
+    sticker(s, STICKERS[4], 11.55, 5.55, size=1.35, rotate=-12)
+    sticker(s, STICKERS[0], 10.15, 5.7, size=1.15, rotate=8)
     notes(s, "Дальше листайте 15 вопросов. Темп ровный, без обсуждения.")
 
 
@@ -191,21 +237,34 @@ def _question(prs, q: dict, total: int = 15):
     write(
         s,
         0.5,
-        1.45,
-        12.3,
-        0.55,
+        1.4,
+        10.5,
+        0.5,
         [{"t": "Выберите только одно занятие — то, что ближе сейчас.", "size": 16, "color": MUTED}],
     )
-    option_row(s, 0.5, 2.3, 12.3, 1.7, "А", q["a"], TEAL)
-    option_row(s, 0.5, 4.25, 12.3, 1.7, "Б", q["b"], CORAL)
+    option_row(s, 0.5, 2.15, 12.3, 1.65, "А", q["a"], TEAL)
+    option_row(s, 0.5, 4.05, 12.3, 1.65, "Б", q["b"], CORAL)
     write(
         s,
         0.5,
-        6.25,
-        12.3,
-        0.45,
+        6.0,
+        10.2,
+        0.4,
         [{"t": "Отметьте А или Б в раздатке. Не спорьте с собой долго.", "size": 14, "color": MUTED}],
     )
+    # стикеры в стиле мессенджера (оригинальные, не копипаст паков ВК)
+    main = STICKERS[(q["n"] - 1) % len(STICKERS)]
+    side = STICKERS[(q["n"]) % len(STICKERS)]
+    positions = [
+        (11.55, 0.35, 1.4, -14),
+        (11.7, 5.55, 1.35, 10),
+        (0.35, 5.55, 1.25, -8),
+    ]
+    px, py, sz, rot = positions[(q["n"] - 1) % len(positions)]
+    sticker(s, main, px, py, size=sz, rotate=rot)
+    # второй стикер на части слайдов
+    if q["n"] % 2 == 0:
+        sticker(s, side, 11.45, 1.85, size=1.05, rotate=16)
     notes(s, f"Вопрос {q['n']}. Тишина. 20–25 секунд.")
 
 
