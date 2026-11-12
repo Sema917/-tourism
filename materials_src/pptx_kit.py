@@ -1,4 +1,4 @@
-"""Вёрстка презентаций в стиле квиза: бордо / крем / золото, рамка, блоки."""
+"""Вёрстка презентаций: современная светлая гамма, крупные блоки, спокойный текст."""
 
 from __future__ import annotations
 
@@ -14,40 +14,40 @@ from pptx.oxml.ns import qn
 from pptx.util import Emu, Inches, Pt
 
 SANS = "Carlito"
-SERIF = "Liberation Serif"
+DISPLAY = "Noto Sans Display"
 ASSETS = Path(__file__).resolve().parent / "assets"
 
-# Палитра по мотивам квиза «Народы и традиции России»
-BURGUNDY = "6B1E2A"
-BURGUNDY_DEEP = "4E1420"
-CREAM = "F6F0E6"
-CREAM_SOFT = "EFE6D8"
-INK = "1C1A18"
-MUTED = "6A5E55"
-GOLD = "C4A35A"
-GOLD_SOFT = "E8D7A8"
+# Современная гамма: холодный светлый фон, глубокий ink, бирюза и коралл
+INK = "14202B"
+MUTED = "5B6874"
+SOFT = "EEF2F5"
+SOFT2 = "E4EBEF"
 WHITE = "FFFFFF"
-CORAL = "B33A3A"
-TEAL = "0F6B5C"
-AMBER_D = "A86B12"
-INDIGO = "3A46A0"
+TEAL = "0B8A7A"
+TEAL_DEEP = "086B5F"
+CORAL = "E05A45"
+SKY = "2F5D9A"
+AMBER = "C47A1A"
+PANEL = "F7FAFB"
+LINE = "D2DBE3"
 
-# совместимость со старыми именами
-NAVY = BURGUNDY
-NAVY2 = BURGUNDY_DEEP
-CORAL_OLD = CORAL
-AMBER = GOLD
-SOFT_TEAL = "E5F4F1"
-SOFT_CORAL = "FDE8E2"
-SOFT_AMBER = "FFF4D8"
-SOFT_INDIGO = "E8EAF8"
+# совместимость
+NAVY = INK
+NAVY2 = "1C2C3A"
+CREAM = SOFT
+BURGUNDY = CORAL
+GOLD = AMBER
+GOLD_SOFT = "E8C48A"
+AMBER_D = AMBER
+INDIGO = SKY
+SERIF = DISPLAY
 
 TYPE_COLORS = {
-    "П": "1F7A45",
-    "Т": "3E5870",
-    "Ч": "A33A2C",
+    "П": "1F8A4C",
+    "Т": "3E5A70",
+    "Ч": "D24B38",
     "З": "2A6FBA",
-    "Х": "7A4C96",
+    "Х": "6B4C9A",
 }
 
 ALIGN = {"left": PP_ALIGN.LEFT, "center": PP_ALIGN.CENTER, "right": PP_ALIGN.RIGHT}
@@ -55,7 +55,6 @@ ANCHOR = {"top": MSO_ANCHOR.TOP, "middle": MSO_ANCHOR.MIDDLE, "bottom": MSO_ANCH
 
 _CACHE: dict[tuple, bytes] = {}
 W, H = 13.333, 7.5
-FRAME = 0.28
 
 
 def rgb(value: str) -> RGBColor:
@@ -76,7 +75,7 @@ def font_run(run, size, color, bold=False, italic=False, name=SANS):
         el.set("typeface", name)
 
 
-def add_shape(slide, x, y, w, h, fill=None, line=None, rounded=False, radius=0.08, line_pt=1.25):
+def add_shape(slide, x, y, w, h, fill=None, line=None, rounded=False, radius=0.08, line_pt=1.1):
     kind = MSO_SHAPE.ROUNDED_RECTANGLE if rounded else MSO_SHAPE.RECTANGLE
     shape = slide.shapes.add_shape(kind, Inches(x), Inches(y), Inches(w), Inches(h))
     shape.shadow.inherit = False
@@ -122,7 +121,7 @@ def write(slide, x, y, w, h, items, anchor="top"):
         para.alignment = ALIGN[item.get("align", "left")]
         para.space_before = Pt(item.get("before", 0))
         para.space_after = Pt(item.get("after", 0))
-        para.line_spacing = item.get("spacing", 1.0)
+        para.line_spacing = item.get("spacing", 1.05)
         runs = item.get("runs")
         if runs is None:
             runs = [item]
@@ -167,40 +166,28 @@ def prepare_image(name: str, *, width=1920, height=1080, darken=0.0, blur=0, cro
 
 
 def picture(slide, name, x, y, w, h, **kwargs):
-    stream = prepare_image(name, width=max(int(w * 180), 40), height=max(int(h * 180), 40), **kwargs)
+    stream = prepare_image(name, width=max(int(w * 200), 40), height=max(int(h * 200), 40), **kwargs)
     return slide.shapes.add_picture(stream, Inches(x), Inches(y), Inches(w), Inches(h))
 
 
-def new_blank(prs, fill=CREAM):
+def new_blank(prs, fill=SOFT):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     add_shape(slide, 0, 0, W, H, fill)
     return slide
 
 
-def frame(slide, color=BURGUNDY, inset=FRAME, pt=1.35):
-    """Тонкая рамка по периметру, как в квизе."""
-    add_shape(slide, inset, inset, W - 2 * inset, H - 2 * inset, fill=None, line=color, line_pt=pt)
-
-
-def hairline(slide, y, color=BURGUNDY, inset=FRAME + 0.08):
-    add_shape(slide, inset, y, W - 2 * inset, 0.015, color)
+def accent_bar(slide, color=TEAL):
+    add_shape(slide, 0, 0, 0.14, H, color)
 
 
 def footer(slide, num, total, light=True, label="Путь в профессию"):
-    color = GOLD_SOFT if not light else MUTED
-    write(slide, FRAME + 0.12, 7.08, 9.2, 0.28, [{"t": f"Наука 0+    ·    {label}", "size": 11, "color": color}])
-    write(
-        slide,
-        10.4,
-        7.08,
-        2.5,
-        0.28,
-        [{"t": str(num), "size": 12, "color": color, "align": "right", "font": SERIF}],
-    )
+    color = "9AA8B3" if light else "8FA0AD"
+    write(slide, 0.45, 7.1, 9.5, 0.28, [{"t": f"Наука 0+    ·    {label}", "size": 11, "color": color}])
+    write(slide, 10.5, 7.1, 2.4, 0.28, [{"t": f"{num}  /  {total}", "size": 11, "color": color, "align": "right"}])
 
 
 def chip(slide, x, y, w, h, text, fill, color=WHITE, size=13):
-    add_shape(slide, x, y, w, h, fill, rounded=True, radius=0.28)
+    add_shape(slide, x, y, w, h, fill, rounded=True, radius=0.22)
     write(
         slide,
         x + 0.08,
@@ -212,28 +199,27 @@ def chip(slide, x, y, w, h, text, fill, color=WHITE, size=13):
     )
 
 
-def option_row(slide, x, y, w, h, letter, text, accent=BURGUNDY):
-    """Кнопка-вариант А/Б в стиле квиза."""
-    add_shape(slide, x, y, w, h, WHITE, line=GOLD_SOFT, rounded=True, radius=0.18, line_pt=1.4)
-    add_shape(slide, x + 0.18, y + (h - 0.42) / 2, 0.42, 0.42, accent, rounded=True, radius=0.5)
+def option_row(slide, x, y, w, h, letter, text, accent=TEAL):
+    add_shape(slide, x, y, w, h, WHITE, line=LINE, rounded=True, radius=0.14, line_pt=1.2)
+    add_shape(slide, x + 0.22, y + (h - 0.5) / 2, 0.5, 0.5, accent, rounded=True, radius=0.5)
     write(
         slide,
-        x + 0.18,
-        y + (h - 0.42) / 2,
-        0.42,
-        0.42,
-        [{"t": letter, "size": 14, "color": WHITE, "bold": True, "align": "center"}],
+        x + 0.22,
+        y + (h - 0.5) / 2,
+        0.5,
+        0.5,
+        [{"t": letter, "size": 16, "color": WHITE, "bold": True, "align": "center"}],
         anchor="middle",
     )
-    write(slide, x + 0.78, y, w - 0.95, h, [{"t": text, "size": 15, "color": INK, "font": SERIF}], anchor="middle")
+    write(slide, x + 0.9, y, w - 1.15, h, [{"t": text, "size": 17, "color": INK}], anchor="middle")
 
 
-def eyebrow(slide, text, color=BURGUNDY, x=0.55, y=0.42):
+def eyebrow(slide, text, color=TEAL, x=0.5, y=0.32):
     write(slide, x, y, 12, 0.28, [{"t": text.upper(), "size": 12, "color": color, "bold": True}])
 
 
-def title(slide, text, y=0.7, size=34, color=INK, w=12.0, x=0.55, font=SERIF):
-    write(slide, x, y, w, 0.85, [{"t": text, "size": size, "color": color, "bold": True, "spacing": 0.95, "font": font}])
+def title(slide, text, y=0.58, size=32, color=INK, w=12.3, x=0.5, font=DISPLAY):
+    write(slide, x, y, w, 0.75, [{"t": text, "size": size, "color": color, "bold": True, "spacing": 0.96, "font": font}])
 
 
 def finish(prs, dark_pages):

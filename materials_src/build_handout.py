@@ -25,15 +25,15 @@ from docx_kit import (
     spacing,
 )
 
-NAVY = "6B1E2A"
-TEAL = "0F6B5C"
 W = 18.5  # usable width at ~1 cm margins
+NAVY = "14202B"
+TEAL = "0B8A7A"
 
 FORMULA_COLORS = {
-    "Хочу": ("F8E8EA", "7A1F2B"),
-    "Могу": ("E5F2EF", "0F6B5C"),
-    "Умею": ("F8EED8", "A86B12"),
-    "Надо": ("E8EAF6", "3A46A0"),
+    "Хочу": ("FCECEA", "E05A45"),
+    "Могу": ("E6F5F2", "0B8A7A"),
+    "Умею": ("F8EED8", "C47A1A"),
+    "Надо": ("E8EEF6", "2F5D9A"),
 }
 
 
