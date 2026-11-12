@@ -170,6 +170,26 @@ def picture(slide, name, x, y, w, h, **kwargs):
     return slide.shapes.add_picture(stream, Inches(x), Inches(y), Inches(w), Inches(h))
 
 
+def sticker(slide, name: str, x, y, size=1.35, rotate=0):
+    """PNG-стикер с прозрачностью (мессенджерный стиль)."""
+    key = ("sticker", name, size, rotate)
+    if key not in _CACHE:
+        path = ASSETS / name
+        img = Image.open(path).convert("RGBA")
+        if rotate:
+            img = img.rotate(rotate, expand=True, resample=Image.Resampling.BICUBIC)
+        # target pixel size roughly matches on-slide inches
+        px = max(int(size * 220), 64)
+        img = ImageOps.contain(img, (px, px), method=Image.Resampling.LANCZOS)
+        buf = BytesIO()
+        img.save(buf, format="PNG", optimize=True)
+        _CACHE[key] = buf.getvalue()
+    out = BytesIO(_CACHE[key])
+    out.seek(0)
+    # keep aspect: use square box
+    return slide.shapes.add_picture(out, Inches(x), Inches(y), Inches(size), Inches(size))
+
+
 def new_blank(prs, fill=SOFT):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     add_shape(slide, 0, 0, W, H, fill)
