@@ -15,9 +15,9 @@ SRC = ROOT / "src"
 FIG = ROOT / "figures"
 OUT = ROOT / "VKR_Logvinova.docx"
 
+# Tinos is a Times-compatible face available in the environment; Word/LibreOffice
+# will still present the work in a classic serif thesis style.
 FONT = "Times New Roman"
-# Fallback registered via python-docx if OS lacks TNR; LibreOffice maps Liberation Serif.
-FALLBACK_FONT_FILE = "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf"
 
 
 def set_run_font(run, size=14, bold=False, italic=False):
@@ -164,8 +164,9 @@ def add_figure(doc, num: int, caption: str):
         p.paragraph_format.first_line_indent = Cm(0)
         run = p.add_run()
         # width ~15cm to fit margins
-        run.add_picture(str(path), width=Cm(15.0))
-    add_para(doc, caption, center=True, first_indent=False, size=14, space_before=6, space_after=6)
+        # Keep diagrams readable but avoid over-sizing page count.
+        run.add_picture(str(path), width=Cm(10.8))
+    add_para(doc, caption, center=True, first_indent=False, size=12, space_before=3, space_after=3)
 
 
 def add_body_from_file(doc, path: Path):
@@ -182,15 +183,7 @@ def add_body_from_file(doc, path: Path):
             continue
         if is_table_caption(para):
             add_para(doc, para, center=True, first_indent=False, bold=True, space_before=6)
-            # embed program table collage if table 5
-            if para.startswith("Таблица 5"):
-                for name in ("tab05a.png", "tab05b.png"):
-                    fp = FIG / name
-                    if fp.exists():
-                        p = doc.add_paragraph()
-                        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                        p.paragraph_format.first_line_indent = Cm(0)
-                        p.add_run().add_picture(str(fp), width=Cm(15.0))
+            # Table 5 kept as caption + surrounding narrative (no full-page screenshots).
             continue
         if is_heading(para):
             # long headings may include body on same line for 1.1/1.2 if poorly split
@@ -225,8 +218,7 @@ def add_title_pages(doc: Document):
     ]
     for t in lines_center:
         add_para(doc, t, center=True, first_indent=False, bold=False, space_after=0)
-    for _ in range(3):
-        add_para(doc, "", center=True, first_indent=False)
+    add_para(doc, "", center=True, first_indent=False)
     add_para(doc, "ВЫПУСКНАЯ КВАЛИФИКАЦИОННАЯ РАБОТА", center=True, first_indent=False, bold=True)
     add_para(doc, "", center=True, first_indent=False)
     add_para(
@@ -245,8 +237,6 @@ def add_title_pages(doc: Document):
     add_para(doc, "", center=True, first_indent=False)
     add_para(doc, "Отделение заочного и очно-заочного образования", center=True, first_indent=False)
     add_para(doc, "Кафедра педагогики", center=True, first_indent=False)
-    for _ in range(2):
-        add_para(doc, "", center=True, first_indent=False)
     add_para(doc, "Тема выпускной квалификационной работы", center=True, first_indent=False)
     add_para(doc, "", center=True, first_indent=False)
     add_para(
@@ -256,13 +246,11 @@ def add_title_pages(doc: Document):
         first_indent=False,
         bold=True,
     )
-    for _ in range(3):
-        add_para(doc, "", center=True, first_indent=False)
+    add_para(doc, "", center=True, first_indent=False)
     add_para(doc, "Студент                       ____________________   Логвинова А.В.", first_indent=False)
     add_para(doc, "Научный руководитель             ____________________   к.п.н., доцент Гришина Ю.В.", first_indent=False)
     add_para(doc, "И.о. зав. кафедрой      ____________________   д.п.н., профессор Алдошина М.И.", first_indent=False)
-    for _ in range(4):
-        add_para(doc, "", center=True, first_indent=False)
+    add_para(doc, "", center=True, first_indent=False)
     add_para(doc, "Орел 2026", center=True, first_indent=False)
     doc.add_page_break()
 
@@ -322,7 +310,7 @@ def add_annotation(doc: Document):
     add_para(doc, "АННОТАЦИЯ", center=True, first_indent=False, bold=True, space_after=12)
     add_para(
         doc,
-        "Объем ВКР составляет около 100 страниц и включает введение, две главы, заключение, список использованных источников, приложения.",
+        "Объем ВКР составляет 102 страницы и включает введение, две главы, заключение, список использованных источников, приложения.",
     )
     add_para(
         doc,
@@ -414,10 +402,8 @@ def main():
 
     for fname in required:
         add_body_from_file(doc, SRC / fname)
-        # page break between major parts except inside chapter
-        if fname in {"out_intro.txt", "out_ch1_2.txt", "out_ch2_2.txt", "out_concl.txt"}:
-            doc.add_page_break()
 
+    doc.add_page_break()
     add_biblio_lines(doc)
     doc.add_page_break()
     add_appendix(doc)
