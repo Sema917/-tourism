@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-VERSION = "2026.6"
+VERSION = "2026.7"
 EVENT = "Путь в профессию"
 FESTIVAL = "Наука 0+"
 MINUTES = 20
